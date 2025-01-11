@@ -111,7 +111,7 @@ class _StructStatx(ctypes.Structure):
         return f"{self.__class__.__name__}({', '.join(fields)})"
 
 
-class _Statx(object):
+class _Statx():
     """statx system call wrapper class."""
 
     # from kernel-sources include/linux/fcntl.h
