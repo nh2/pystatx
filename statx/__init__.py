@@ -4,6 +4,7 @@ statx - get file status (extended)
 
 http://man7.org/linux/man-pages/man2/statx.2.html
 """
+import os
 import platform
 import ctypes
 import functools
@@ -24,13 +25,19 @@ def _get_syscall_number():
     return None
 
 
+def _check_errno(result, func, arguments):
+    errno = ctypes.get_errno()
+    if errno != 0:
+        raise IOError(errno, os.strerror(errno))
+
 def _get_syscall_func():
     syscall_nr = _get_syscall_number()
     if syscall_nr is None:
         raise RuntimeError(
             'Only x86, arm64, x86_64 and ppc64le machines on Linux are supported.')
-    syscall = ctypes.CDLL(None).syscall
+    syscall = ctypes.CDLL(None, use_errno=True).syscall
     syscall.restype = ctypes.c_int
+    syscall.errcheck = _check_errno
     syscall.argtypes = [
         ctypes.c_long, ctypes.c_int, ctypes.c_char_p, ctypes.c_int,
         ctypes.c_uint,
@@ -245,8 +252,8 @@ class _Statx(object):
                 return 'symbolic link'
             if file_type == self._S_IFSOCK:
                 return 'socket'
-            return 'unknown type {}'.format(
-                self._struct_statx_buf.stx_mode & self._S_IFMT)
+            
+            return f'unknown type {self.struct_statx_buf.stx_mode & self._S_IFMT}'
         return 'no type'
 
     @property
