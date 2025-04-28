@@ -101,6 +101,7 @@ class _Statx(object):
     _AT_SYMLINK_NOFOLLOW = 0x100  # Do not follow symbolic links.
     _AT_NO_AUTOMOUNT = 0x800  # Suppress terminal automount traversal
     _AT_FDCWD = -100  # Special value used to indicate
+    _AT_EMPTY_PATH = 0x1000
     # openat should use the current working directory.
     _AT_STATX_SYNC_TYPE = 0x6000  # Type of synchronisation required from statx
     _AT_STATX_FORCE_SYNC = 0x2000  # Force the attributes to be sync'd
@@ -141,8 +142,14 @@ class _Statx(object):
                  dont_sync=False):
         """Construct statx wrapper class."""
         statx_syscall = _get_syscall_func()
-        self._dirfd = self._AT_FDCWD
-        self._flag = self._AT_SYMLINK_NOFOLLOW
+        if isinstance(filepath, int):
+            # by file descriptor
+            self._dirfd = filepath
+            self._flag = self._AT_EMPTY_PATH
+            filepath = ""
+        else:
+            self._dirfd = self._AT_FDCWD
+            self._flag = self._AT_SYMLINK_NOFOLLOW
         self._mask = self._STATX_ALL
         if no_automount:
             self._flag |= self._AT_NO_AUTOMOUNT
