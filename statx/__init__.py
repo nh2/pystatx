@@ -53,6 +53,9 @@ class _StructStatxTimestamp(ctypes.Structure):
         """Return statx timestamp."""
         return self.tv_sec + self.tv_nsec * 1e-9
 
+    def __str__(self) -> str:
+        return str(self.timestamp)
+
 
 class _StructStatx(ctypes.Structure):
     """statx data buffer C struct."""
@@ -91,6 +94,14 @@ class _StructStatx(ctypes.Structure):
         ('stx_dev_minor', ctypes.c_uint),  # Minor ID
         ('__statx_pad2', ctypes.c_ulonglong * 14)
     ]
+
+    def __str__(self) -> str:
+        fields = [
+            f"{name}={getattr(self, name)}"
+            for name, _ in self._fields_
+            if name not in {"__statx_pad1", "__statx_pad2"}
+        ]
+        return f"{self.__class__.__name__}({', '.join(fields)})"
 
 
 class _Statx(object):
