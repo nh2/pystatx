@@ -48,6 +48,14 @@ class _StructStatxTimestamp(ctypes.Structure):
         ('__statx_timestamp_pad1', ctypes.c_int * 1)
     ]
 
+    @property
+    def timestamp(self) -> float:
+        """Return statx timestamp."""
+        return self.tv_sec + self.tv_nsec * 1e-9
+
+    def __str__(self) -> str:
+        return str(self.timestamp)
+
 
 class _StructStatx(ctypes.Structure):
     """statx data buffer C struct."""
@@ -87,11 +95,13 @@ class _StructStatx(ctypes.Structure):
         ('__statx_pad2', ctypes.c_ulonglong * 14)
     ]
 
-
-def _stx_timestamp(struct_statx_timestamp):
-    """Return statx timestamp."""
-    return struct_statx_timestamp.tv_sec + \
-        struct_statx_timestamp.tv_nsec * 1e-9
+    def __str__(self) -> str:
+        fields = [
+            f"{name}={getattr(self, name)}"
+            for name, _ in self._fields_
+            if name not in {"__statx_pad1", "__statx_pad2"}
+        ]
+        return f"{self.__class__.__name__}({', '.join(fields)})"
 
 
 class _Statx(object):
@@ -271,28 +281,28 @@ class _Statx(object):
     def atime(self):
         """Return the last access time."""
         if self.mask & self._STATX_ATIME:
-            return _stx_timestamp(self._struct_statx_buf.stx_atime)
+            return self._struct_statx_buf.stx_atime.timestamp
         return None
 
     @property
     def btime(self):
         """Return the birth time."""
         if self.mask & self._STATX_BTIME:
-            return _stx_timestamp(self._struct_statx_buf.stx_btime)
+            return self._struct_statx_buf.stx_btime.timestamp
         return None
 
     @property
     def ctime(self):
         """Return the change time."""
         if self.mask & self._STATX_CTIME:
-            return _stx_timestamp(self._struct_statx_buf.stx_ctime)
+            return self._struct_statx_buf.stx_ctime.timestamp
         return None
 
     @property
     def mtime(self):
         """Return the modification time."""
         if self.mask & self._STATX_MTIME:
-            return _stx_timestamp(self._struct_statx_buf.stx_mtime)
+            return self._struct_statx_buf.stx_mtime.timestamp
         return None
 
 
