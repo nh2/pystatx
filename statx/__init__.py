@@ -53,6 +53,11 @@ class _StructStatxTimestamp(ctypes.Structure):
         """Return statx timestamp."""
         return self.tv_sec + self.tv_nsec * 1e-9
 
+    @property
+    def timestamp_ns(self) -> int:
+        """Return statx timestamp as nanosecond integer."""
+        return self.tv_sec * 1_000_000_000 + self.tv_nsec
+
     def __str__(self) -> str:
         return str(self.timestamp)
 
@@ -285,10 +290,24 @@ class _Statx(object):
         return None
 
     @property
+    def atime_ns(self):
+        """Return the last access as a nanoseconds integer time."""
+        if self.mask & self._STATX_ATIME:
+            return self._struct_statx_buf.stx_atime.timestamp_ns
+        return None
+
+    @property
     def btime(self):
         """Return the birth time."""
         if self.mask & self._STATX_BTIME:
             return self._struct_statx_buf.stx_btime.timestamp
+        return None
+
+    @property
+    def btime_ns(self):
+        """Return the birth time as a nanoseconds integer."""
+        if self.mask & self._STATX_BTIME:
+            return self._struct_statx_buf.stx_btime.timestamp_ns
         return None
 
     @property
@@ -299,10 +318,24 @@ class _Statx(object):
         return None
 
     @property
+    def ctime_ns(self):
+        """Return the change time as a nanoseconds integer."""
+        if self.mask & self._STATX_CTIME:
+            return self._struct_statx_buf.stx_ctime.timestamp_ns
+        return None
+
+    @property
     def mtime(self):
         """Return the modification time."""
         if self.mask & self._STATX_MTIME:
             return self._struct_statx_buf.stx_mtime.timestamp
+        return None
+
+    @property
+    def mtime_ns(self):
+        """Return the modification time as a nanoseconds integer."""
+        if self.mask & self._STATX_MTIME:
+            return self._struct_statx_buf.stx_mtime.timestamp_ns
         return None
 
 
